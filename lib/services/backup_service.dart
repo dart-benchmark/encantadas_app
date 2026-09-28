@@ -309,7 +309,7 @@ class BackupService {
       final completer = Completer<bool>();
       
       // Create a callback function for JavaScript
-      js.context['authCallback'] = js.allowInterop((token) {
+      js.context['authCallback'] = js.JsFunction.withThis((_, token) {
         if (token != null) {
           _handleAuthSuccess(token);
           completer.complete(true);
