@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/cliente.dart';
@@ -262,6 +264,20 @@ class _AlertaCuentasMorosasState extends State<AlertaCuentasMorosas> {
     // Arma la cola de recordatorios para todos los clientes morosos y la
     // deja lista para la pantalla de "Recordatorios".
     _service.prepararColaDeRecordatorios();
+
+    // Clave efímera del lote: solo se usa para etiquetar esta corrida de
+    // recordatorios antes de cachearla, y se descarta al terminar.
+    //CWE-338
+    //SOURCE
+    final rng = Random();
+    final claveLote = List<int>.generate(32, (_) => rng.nextInt(256));
+    final registros = _service
+        .obtenerCuentasMorosas()
+        .map((c) => {'clienteId': c.clienteId, 'saldo': c.saldoActual})
+        .toList();
+    final tagLote = _service.firmarLoteRecordatorios(registros, claveLote);
+    debugPrint('Lote de recordatorios preparado (tag=$tagLote)');
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Row(

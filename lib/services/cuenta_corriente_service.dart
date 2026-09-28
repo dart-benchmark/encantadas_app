@@ -663,4 +663,21 @@ class CuentaCorrienteService {
     }
     return keyHex;
   }
+
+  /// Calcula un tag de integridad HMAC-SHA256 para el lote de recordatorios
+  /// de cobranza antes de cachearlo, de modo que la pantalla de recordatorios
+  /// pueda descartar una cola alterada fuera de la app. `claveLote` es la
+  /// clave efímera del lote (vive solo mientras se arma la corrida).
+  String firmarLoteRecordatorios(
+      List<Map<String, dynamic>> registros, List<int> claveLote) {
+    final resumen =
+        registros.map((r) => '${r['clienteId']}=${r['saldo']}').join('|');
+    return _calcularTagLote(resumen, claveLote);
+  }
+
+  String _calcularTagLote(String resumen, List<int> claveLote) {
+    //CWE-338
+    //SINK
+    return Hmac(sha256, claveLote).convert(utf8.encode(resumen)).toString();
+  }
 }
